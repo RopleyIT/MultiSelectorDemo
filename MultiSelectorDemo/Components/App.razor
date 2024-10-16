@@ -1,0 +1,34 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    <!-- Add this next link to import the set of bootstrap icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="MultiSelectorDemo.styles.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+    <script src="_framework/blazor.web.js"></script>
+    <script>
+        window.getSelectedValues = function (sel) {
+            var results = [];
+            var i;
+            for (i = 0; i < sel.options.length; i++) {
+                if (sel.options[i].selected) {
+                    results[results.length] = sel.options[i].value;
+                }
+            }
+            return results;
+        };
+    </script>
+</body>
+
+</html>

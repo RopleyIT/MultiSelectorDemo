@@ -1,0 +1,45 @@
+﻿@rendermode InteractiveServer
+<label for="synopsis">@Title</label>
+<div class="input-group mb-3">
+    <span class="input-group-text" id="synopsis">@synopsis</span>
+    <button class="btn btn-primary" type="button" @onclick="OpenSelector">...</button>
+</div>
+<DlgModal @ref=dlgModal Title=@($"Select {Title}")>
+    <ListSelector All ="@All" Selected="@Selected" SelectedChanged="@OnSelectionChanged"></ListSelector>
+</DlgModal>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+
+    [Parameter]
+    public List<string> All { get; set; } = new();
+
+    [Parameter]
+    public List<string> Selected { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<List<string>> SelectedChanged { get; set; }
+
+    private async Task OnSelectionChanged(List<string> newSelections)
+    {
+        Selected = newSelections;
+        SelectedChanged.InvokeAsync(Selected);
+    }
+
+    private string synopsis =>
+            Selected.Count switch
+            {
+                <= 0 => "(none selected)",
+                > 0 and < 4 => string.Join(',', Selected),
+                _ => $"{Selected.Count} selected"
+            };
+
+    DlgModal? dlgModal;
+
+    public void OpenSelector()
+    {
+        if(dlgModal != null)
+            dlgModal.Show = true;
+    }
+}

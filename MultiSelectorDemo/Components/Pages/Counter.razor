@@ -1,0 +1,25 @@
+﻿@page "/counter"
+@rendermode InteractiveServer
+
+<PageTitle>List selector</PageTitle>
+
+<SelectorDialog @ref=selDialog Title="Menu Items" All="@all" @bind-Selected="selected" />
+<h3>Your selection was:</h3>
+@foreach(string s in selected)
+{
+    <p>@s</p>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        all = new()
+        {
+            "Beans", "Spam", "Toast", "Rashers", "Mushrooms"
+        };
+        selected = all;
+    }
+    List<string> all = new();
+    List<string> selected = new();
+    SelectorDialog? selDialog;
+}

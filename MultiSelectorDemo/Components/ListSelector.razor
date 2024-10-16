@@ -1,0 +1,204 @@
+﻿@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+<div class="list-selector">
+    <div class="ns-lbl">Unselected Items</div>
+    <div class="s-lbl">Selected Items</div>
+    <div class="ns-filter"><input type="text" @bind-value=nsFilterText/></div>
+    <div class="s-filter"><input type="text" @bind-value=sFilterText /></div>
+    <div class="ns-apply-filter btn-group">
+        <button class="btn btn-primary btn-sm ms-1">
+            <i class="bi bi-search" />
+        </button>
+        <button class="btn btn-primary btn-sm" @onclick=ClearNSFilter>
+            <span aria-hidden="true">&times</span>
+        </button>
+    </div>
+    <div class="s-apply-filter btn-group">
+        <button class="btn btn-primary btn-sm ms-1">
+            <i class="bi bi-search" />
+        </button>
+        <button class="btn btn-primary btn-sm" @onclick=ClearSFilter>
+            <span aria-hidden="true">&times</span>
+        </button>
+    </div>
+    <div class="sel-all"><button class="btn btn-primary btn-sm mx-1" @onclick=SelectAll><i class="bi bi-fast-forward-fill" /></button></div>
+    <div class="rem-all"><button class="btn btn-primary btn-sm mx-1" @onclick=RemoveAll><i class="bi bi-rewind-fill" /></button></div>
+    <div class="sel"><button class="btn btn-primary btn-sm mx-1" @onclick=SelectSome><i class="bi bi-caret-right-fill" /></button></div>
+    <div class="rem"><button class="btn btn-primary btn-sm mx-1" @onclick=RemoveSome><i class="bi bi-caret-left-fill" /></button></div>
+    <div class="ns-list">
+        <select @ref="notSelected" class="sel-list" id="ns-lbx" multiple>
+            @foreach(string s in NotSelected)
+            {
+                <option value="@s">@s</option>
+            }
+        </select>
+    </div>
+    <div class="s-list">
+        <select @ref="selected" class="sel-list" id="s-lbx" multiple>
+            @foreach (string s in AreSelected)
+            {
+                <option value="@s">@s</option>
+            }
+        </select>
+    </div>
+</div>
+
+@code {
+    protected override void OnParametersSet()
+    {
+        // Avoid bug where elements disappear from both
+        // lists when items removed from selected list
+
+        if (Selected == All)
+            Selected = new(All);
+    }
+
+    /// <summary>
+    /// Set the list of all items in this selection control
+    /// </summary>
+
+    [Parameter]
+    public List<string> All { get; set; } = new();
+
+    /// <summary>
+    /// Two way binding for the items selected from the
+    /// list of all items. Use @bind-Selected in parent.
+    /// </summary>
+
+    [Parameter]
+    public List<string> Selected { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<List<string>> SelectedChanged { get; set; }
+
+    private async Task UpdateSelected(List<string> newSelection)
+    {
+        Selected = newSelection;
+        await SelectedChanged.InvokeAsync(Selected);
+    }
+
+    /// <summary>
+    /// The remaining items that do not
+    /// appear in the selected item list
+    /// </summary>
+
+    private IEnumerable<String> NotSelected 
+    {
+        get
+        {
+            All.Sort();
+            var filter = All.Except(Selected);
+            if (!string.IsNullOrWhiteSpace(nsFilterText))
+                filter = filter.Where
+                (s => s.Contains(nsFilterText, StringComparison.OrdinalIgnoreCase));
+            return filter;
+        }
+    }
+    /// <summary>
+    /// The subset of all items that have
+    /// been moved to the selected list
+    /// </summary>
+
+    private IEnumerable<string> AreSelected
+    {
+        get
+        {
+            Selected.Sort();
+            if (!string.IsNullOrWhiteSpace(sFilterText))
+                return Selected.Where
+                (s => s.Contains(sFilterText, StringComparison.OrdinalIgnoreCase));
+            return Selected;
+        }
+    }
+
+    /// <summary>
+    /// Select all items in the control
+    /// </summary>
+    /// <param name="args">Unused</param>
+    /// <returns>the task to wait on</returns>
+
+    private async Task SelectAll(MouseEventArgs args)
+    {
+        nsFilterText = string.Empty;
+        sFilterText = string.Empty;
+        await UpdateSelected(new(All));
+    }
+
+    /// <summary>
+    /// Deselect all items in the control
+    /// </summary>
+    /// <param name="args">Unused</param>
+    /// <returns>the task to wait on</returns>
+
+    private async Task RemoveAll(MouseEventArgs args)
+    {
+        Selected.Clear();
+        nsFilterText = string.Empty;
+        sFilterText = string.Empty;
+        await UpdateSelected(Selected);
+    }
+
+    private ElementReference notSelected;
+
+    /// <summary>
+    /// Move all highlighted items in the not selected
+    /// list to the selected list and trigger the
+    /// change event
+    /// </summary>
+    /// <param name="args">Unused</param>
+    /// <returns>the task to wait on</returns>
+
+    private async Task SelectSome(MouseEventArgs args)
+    {
+        List<string> newSelections = await GetMultiSelectItems(notSelected);
+        Selected.AddRange(newSelections);
+        await UpdateSelected(Selected);
+    }
+
+    private ElementReference selected;
+
+    /// <summary>
+    /// Move the highlighted items in the selected
+    /// list back to the not selected list, and
+    /// fire the change event
+    /// </summary>
+    /// <param name="args">Unused</param>
+    /// <returns>the task to wait on</returns>
+
+    private async Task RemoveSome(MouseEventArgs args)
+    {
+        List<string> deSelections = await GetMultiSelectItems(selected);
+        foreach (string s in deSelections)
+            Selected.Remove(s);
+        await UpdateSelected(Selected);
+    }
+
+    /// <summary>
+    /// C# interface method onto the JavaScript function
+    /// added to the App.razor file
+    /// </summary>
+    /// <param name="selElement">The SELECT control
+    ///  from which we grab the selected items</param>
+    /// <returns>the task to wait on</returns>
+
+    private async Task<List<string>>
+        GetMultiSelectItems(ElementReference selElement) 
+    {
+        var result = await JS.InvokeAsync<List<string>>
+        ("getSelectedValues", selElement);
+        return result;
+    }
+
+    // Filter variables and logic
+
+    private string nsFilterText = string.Empty;
+    private string sFilterText = string.Empty;
+
+    private void ClearNSFilter()
+        => nsFilterText = string.Empty;
+
+    private void ClearSFilter()
+        => sFilterText = string.Empty;
+}
+
