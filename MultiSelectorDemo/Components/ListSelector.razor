@@ -2,32 +2,36 @@
 @inject IJSRuntime JS
 
 <div class="list-selector">
-    <div class="ns-lbl">Unselected Items</div>
-    <div class="s-lbl">Selected Items</div>
-    <div class="ns-filter"><input type="text" @bind-value=nsFilterText/></div>
-    <div class="s-filter"><input type="text" @bind-value=sFilterText /></div>
-    <div class="ns-apply-filter btn-group">
-        <button class="btn btn-primary btn-sm ms-1">
-            <i class="bi bi-search" />
-        </button>
-        <button class="btn btn-primary btn-sm" @onclick=ClearNSFilter>
-            <span aria-hidden="true">&times</span>
-        </button>
+    <div class="ns-filter">
+        <label for="nsfilter">Unselected Items</label>
+        <div class="input-group mb-2">
+            <input id="nsfilter" class="filter-text form-control form-control-sm" type="text" @bind-value=nsFilterText />
+            <button class="btn btn-primary btn-sm">
+                <i class="bi bi-search" />
+            </button>
+            <button class="btn btn-primary btn-sm" @onclick=ClearNSFilter>
+                <span aria-hidden="true">&times</span>
+            </button>
+        </div>
     </div>
-    <div class="s-apply-filter btn-group">
-        <button class="btn btn-primary btn-sm ms-1">
-            <i class="bi bi-search" />
-        </button>
-        <button class="btn btn-primary btn-sm" @onclick=ClearSFilter>
-            <span aria-hidden="true">&times</span>
-        </button>
+    <div class="s-filter">
+        <label for="sfilter">Selected Items</label>
+        <div class="input-group mb-2">
+            <input id="sfilter " class="filter-text form-control form-control-sm" type="text" @bind-value=sFilterText />
+            <button class="btn btn-primary btn-sm">
+                <i class="bi bi-search" />
+            </button>
+            <button class="btn btn-primary btn-sm" @onclick=ClearSFilter>
+                <span aria-hidden="true">&times</span>
+            </button>
+        </div>
     </div>
     <div class="sel-all"><button class="btn btn-primary btn-sm mx-1" @onclick=SelectAll><i class="bi bi-fast-forward-fill" /></button></div>
     <div class="rem-all"><button class="btn btn-primary btn-sm mx-1" @onclick=RemoveAll><i class="bi bi-rewind-fill" /></button></div>
     <div class="sel"><button class="btn btn-primary btn-sm mx-1" @onclick=SelectSome><i class="bi bi-caret-right-fill" /></button></div>
     <div class="rem"><button class="btn btn-primary btn-sm mx-1" @onclick=RemoveSome><i class="bi bi-caret-left-fill" /></button></div>
     <div class="ns-list">
-        <select @ref="notSelected" class="sel-list" id="ns-lbx" multiple>
+        <select @ref="notSelected" class="sel-list form-select form-select-sm" id="ns-lbx" multiple>
             @foreach(string s in NotSelected)
             {
                 <option value="@s">@s</option>
@@ -35,7 +39,7 @@
         </select>
     </div>
     <div class="s-list">
-        <select @ref="selected" class="sel-list" id="s-lbx" multiple>
+        <select @ref="selected" class="sel-list form-select form-select-sm" id="s-lbx" multiple>
             @foreach (string s in AreSelected)
             {
                 <option value="@s">@s</option>
